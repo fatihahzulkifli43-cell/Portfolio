@@ -27,7 +27,7 @@
                     </div>
                     <div class="contact-details">
                         <span class="contact-label">Email</span>
-                        <span class="contact-value">fatihahzulkifli43@gmail.com</span>
+                        <span class="contact-value">fatihahzulkifli43@email.com</span>
                     </div>
                 </div>
 
@@ -298,22 +298,21 @@ In my free time, I work on improving my analytical and technical skills by learn
                             <button class="workshop-btn view-gallery-btn">View Gallery</button>
                         </div>
 
-                        <!-- 6. PDF & LOGBOOK -->
+                        <!-- 6. PDF & LOGBOOK - FIXED VERSION -->
                         <div class="workshop-card" data-workshop="document">
                             <div class="workshop-date">PDF & LOGBOOK</div>
                             <h4 class="workshop-title">PDF & LOGBOOK</h4>
                             <p class="workshop-description">
                                 Created and formatted PDF documents and maintained detailed logbooks for project documentation and progress tracking.
                             </p>
-                           <a 
-                              href="workshop/B032310573_Workshop_2_Logbook.pdf" 
+                            <a 
+                              href="./workshop/B032310573_Workshop_2_Logbook.pdf" 
                               class="workshop-btn"
                               target="_blank"
-                              download
+                              rel="noopener noreferrer"
                             >
                                   Download Logbook (PDF)
                             </a>
-
                         </div>
                     </div>
                 </div>
@@ -328,7 +327,7 @@ In my free time, I work on improving my analytical and technical skills by learn
                     <!-- Schools Gallery Grid -->
                     <div class="schools-gallery-grid">
                         <!-- KMNS Card -->
-<div class="school-gallery-card glass-card" onclick="openPopup('kmnsPopup')" tabindex="0" role="button" aria-label="View KMNS gallery">
+<div class="school-gallery-card glass-card" data-popup="kmnsPopup" tabindex="0" role="button" aria-label="View KMNS gallery">
     <img src="gallery/matrik.JPG" alt="KMNS Building" class="school-bg-image" loading="lazy">
     <div class="school-overlay"></div>
     <div class="school-content">
@@ -340,7 +339,7 @@ In my free time, I work on improving my analytical and technical skills by learn
 </div>
 
 <!-- UTeM Card -->
-<div class="school-gallery-card glass-card" onclick="openPopup('utemPopup')" tabindex="0" role="button" aria-label="View UTeM gallery">
+<div class="school-gallery-card glass-card" data-popup="utemPopup" tabindex="0" role="button" aria-label="View UTeM gallery">
     <img src="gallery/utem.jpg" alt="UTeM Building" class="school-bg-image" loading="lazy">
     <div class="school-overlay"></div>
     <div class="school-content">
@@ -349,6 +348,8 @@ In my free time, I work on improving my analytical and technical skills by learn
         </div>
         <h3 class="school-name">Universiti Teknikal Malaysia Melaka (UTeM)</h3>
     </div>
+</div>
+</div>
 </div>
 
                 <!-- Contact Tab -->
@@ -446,7 +447,7 @@ In my free time, I work on improving my analytical and technical skills by learn
     <!-- KMNS Gallery Popup -->
     <div id="kmnsPopup" class="popup" role="dialog" aria-labelledby="kmnsTitle" aria-modal="true">
         <div class="popup-content glass-card">
-            <span class="close" onclick="closePopup('kmnsPopup')" tabindex="0" role="button" aria-label="Close popup">&times;</span>
+            <span class="close" tabindex="0" role="button" aria-label="Close popup">&times;</span>
             <h2 id="kmnsTitle">KMNS - Capture Moments</h2>
             <div class="gallery-grid">
                 <div class="gallery-card">
@@ -574,7 +575,7 @@ In my free time, I work on improving my analytical and technical skills by learn
     <!-- UTeM Gallery Popup -->
     <div id="utemPopup" class="popup" role="dialog" aria-labelledby="utemTitle" aria-modal="true">
         <div class="popup-content glass-card">
-            <span class="close" onclick="closePopup('utemPopup')" tabindex="0" role="button" aria-label="Close popup">&times;</span>
+            <span class="close" tabindex="0" role="button" aria-label="Close popup">&times;</span>
             <h2 id="utemTitle">UTeM - Capture Moments</h2>
             <div class="gallery-grid">
                 <div class="gallery-card">
@@ -708,7 +709,4 @@ In my free time, I work on improving my analytical and technical skills by learn
 
     <script src="script.js"></script>
 </body>
-
 </html>
-
-
