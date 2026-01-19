@@ -283,8 +283,7 @@ workshopCards.forEach(card => {
     e.preventDefault();
     e.stopPropagation();
 
-            
-            const workshopType = card.getAttribute('data-workshop');
+        
             const data = workshopData[workshopType];
             
             if (data && workshopModal) {
