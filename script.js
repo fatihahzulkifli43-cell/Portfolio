@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
         pdfs: [
             {
                 name: 'LOGBOOK',
-                url: 'workshop/B032310573%20Workshop%202%20Logbook.pdf',
+                url: 'workshop/B032310573_Workshop_2_Logbook.pdf',
                 size: '2.5 MB',
                 description: 'A detailed, chronological record of project activities, feedback supervisor, and progress.'
             },
@@ -1004,5 +1004,6 @@ function updateGalleryCardHandlers() {
 // Call this after DOM is loaded
 
 setTimeout(updateGalleryCardHandlers, 100);
+
 
 
