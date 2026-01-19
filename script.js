@@ -250,20 +250,21 @@ document.addEventListener('DOMContentLoaded', function() {
             ],
         },
 
-    document: {
-        title: 'PDF & LOGBOOK',
-        date: 'Documentation',
-        description: 'Project documentation, reports, and logbooks in PDF format for reference and archival purposes.',
-        pdfs: [
-            {
-                name: 'LOGBOOK',
-                url: 'workshop/B032310573_Workshop_2_Logbook.pdf',
-                size: '2.5 MB',
-                description: 'A detailed, chronological record of project activities, feedback supervisor, and progress.'
-            },
-        ],
-        images: [] // Keep this for compatibility
-    }
+document: {
+    title: 'PDF & Logbook',
+    date: 'Documentation',
+    description: 'Project documentation, reports, and logbooks in PDF format for reference and archival purposes.',
+    pdfs: [
+        {
+            name: 'Logbook',
+            url: 'workshop/B032310573_Workshop_2_Logbook.pdf',
+            size: '2.5 MB',
+            description: 'A detailed chronological record of project activities, supervisor feedback, and progress.'
+        }
+    ],
+    images: [] // Kept for compatibility
+}
+
 };
 
     // Open workshop modal
@@ -1004,6 +1005,7 @@ function updateGalleryCardHandlers() {
 // Call this after DOM is loaded
 
 setTimeout(updateGalleryCardHandlers, 100);
+
 
 
 
