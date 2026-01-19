@@ -273,8 +273,16 @@ workshopCards.forEach(card => {
     
     if (viewGalleryBtn) {
         viewGalleryBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+    const workshopType = card.getAttribute('data-workshop');
+
+    // 🚨 Allow normal link behavior for PDFs
+    if (workshopType === 'document') {
+        return; // DO NOT prevent default
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
             
             const workshopType = card.getAttribute('data-workshop');
             const data = workshopData[workshopType];
@@ -1005,6 +1013,7 @@ function updateGalleryCardHandlers() {
 // Call this after DOM is loaded
 
 setTimeout(updateGalleryCardHandlers, 100);
+
 
 
 
