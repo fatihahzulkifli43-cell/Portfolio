@@ -249,6 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'workshop/vfx4.png'
             ],
         },
+
     document: {
         title: 'PDF & LOGBOOK',
         date: 'Documentation',
@@ -256,11 +257,12 @@ document.addEventListener('DOMContentLoaded', function() {
         pdfs: [
             {
                 name: 'LOGBOOK',
-                url: 'workshop/B032310573 Workshop 2 Logbook.pdf',
+                url: 'workshop/B032310573%20Workshop%202%20Logbook.pdf',
                 size: '2.5 MB',
                 description: 'A detailed, chronological record of project activities, feedback supervisor, and progress.'
             },
         ],
+        images: [] // Keep this for compatibility
     }
 };
 
@@ -1002,4 +1004,5 @@ function updateGalleryCardHandlers() {
 // Call this after DOM is loaded
 
 setTimeout(updateGalleryCardHandlers, 100);
+
 
