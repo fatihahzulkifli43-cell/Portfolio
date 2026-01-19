@@ -261,7 +261,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 description: 'A detailed, chronological record of project activities, feedback supervisor, and progress.'
             },
         ],
-        images: [] // Keep this for compatibility
     }
 };
 
@@ -1003,3 +1002,4 @@ function updateGalleryCardHandlers() {
 // Call this after DOM is loaded
 
 setTimeout(updateGalleryCardHandlers, 100);
+
