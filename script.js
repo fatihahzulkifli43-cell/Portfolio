@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
             date: 'Documentation',
             description: 'Captured behind-the-scenes photos and showcase moments.',
             images: [
-                'workshop/bts1.JPG',
+                'workshop/bts1.jpg',
                 'workshop/bts2.JPG',
                 'workshop/bts3.JPG',
                 'workshop/bts4.JPG',
@@ -745,4 +745,5 @@ function setupHorizontalScroll(container) {
 // Console message
 console.log('%c🎨 Portfolio Website ', 'background: #10B981; color: #0a0a0a; font-size: 20px; padding: 10px; border-radius: 5px;');
 console.log('%cDesigned with passion and built with modern web technologies', 'color: #10B981; font-size: 14px;');
+
 
