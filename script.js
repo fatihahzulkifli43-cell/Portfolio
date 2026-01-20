@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const workshopData = {
         storyboard:{ title:'Storyboard & Script', date:'Pre-Production', description:'Created detailed storyboards...', images:['workshop/storyboard.png','workshop/script.png'] },
-        merchandise:{ title:'Merchandise & Poster', date:'Design Phase', description:'Designed creative merchandise...', images:['workshop/poster.png','workshop/logo.jpg','workshop/tote bag.png','workshop/Button badge.png','workshop/sticker.jpg','workshop/baju.png'] },
+        merchandise:{ title:'Merchandise & Poster', date:'Design Phase', description:'Designed creative merchandise...', images:['workshop/poster.png','workshop/logo.jpg','workshop/tote bag.png','workshop/Button badge.png','workshop/sticker.jpg','workshop/Baju.png'] },
         youtube:{ title:'Thumbnail Design & YouTube', date:'Publishing', description:'Created engaging thumbnails...', images:['workshop/thumbnail.jpg','workshop/teaser.mp4'] },
         showcase:{ title:'Showcase & BTS', date:'Documentation', description:'Captured behind-the-scenes photos...', images:['workshop/bts1.jpg','workshop/bts2.jpg','workshop/bts3.jpg','workshop/bts4.jpg','workshop/sc1.jpg','workshop/sc2.jpg','workshop/sc3.jpg','workshop/sc4.jpg'] },
         editing:{ title:'Editing & VFX', date:'Post-Production', description:'Edited video footage and applied visual effects...', images:['workshop/vfx1.png','workshop/vfx2.png','workshop/vfx3.png','workshop/vfx4.png'] },
@@ -461,3 +461,4 @@ function updateGalleryCardHandlers() {
 
 // Call this after DOM is loaded
 setTimeout(updateGalleryCardHandlers, 100);
+
