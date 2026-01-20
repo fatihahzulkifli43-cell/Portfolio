@@ -1,10 +1,85 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+    // ===== PERFORMANCE OPTIMIZATION =====
+    // Preload critical images
+    const preloadImages = (urls) => {
+        urls.forEach(url => {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = url;
+            document.head.appendChild(link);
+        });
+    };
+
+    // Lazy load images with Intersection Observer
+    const lazyLoadImages = () => {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.dataset.src || img.src;
+                    
+                    // Create a new image to test loading
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        img.src = src;
+                        img.classList.add('loaded');
+                    };
+                    tempImg.onerror = () => {
+                        handleImageError(img, img.alt || 'Image', 0);
+                    };
+                    tempImg.src = src;
+                    
+                    observer.unobserve(img);
+                }
+            });
+        }, {
+            rootMargin: '50px', // Start loading 50px before entering viewport
+            threshold: 0.01
+        });
+
+        document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    };
+
+    // ===== IMAGE ERROR HANDLING =====
+    function createPlaceholder(text, index) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 600;
+        const ctx = canvas.getContext('2d');
+        
+        // Gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 800, 600);
+        gradient.addColorStop(0, '#10B981');
+        gradient.addColorStop(1, '#059669');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 800, 600);
+        
+        // Text
+        ctx.fillStyle = '#0a0a0a';
+        ctx.font = 'bold 40px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, 400, 300);
+        
+        return canvas.toDataURL();
+    }
+
+    function handleImageError(img, altText, index) {
+        if (!img.dataset.errorHandled) {
+            img.dataset.errorHandled = 'true';
+            img.src = createPlaceholder(altText || 'Image Not Available', index || 1);
+            img.classList.add('loaded');
+        }
+    }
+
     // ===== TAB NAVIGATION =====
     const navTabs = document.querySelectorAll('.nav-tab');
     const tabContents = document.querySelectorAll('.tab-content');
 
-    // Initialize tabs
     tabContents.forEach(content => {
         if (!content.classList.contains('active')) {
             content.style.display = 'none';
@@ -15,26 +90,25 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
             
-            // Remove active class from all tabs and contents
             navTabs.forEach(t => t.classList.remove('active'));
             tabContents.forEach(c => {
                 c.classList.remove('active');
                 c.style.display = 'none';
             });
             
-            // Add active class to clicked tab
             tab.classList.add('active');
 
-            // Show corresponding content
             const tabId = tab.getAttribute('data-tab');
             const target = document.getElementById(tabId);
             if (target) {
                 target.style.display = 'block';
-                void target.offsetWidth; // Force reflow
+                void target.offsetWidth;
                 target.classList.add('active');
+                
+                // Lazy load images in the newly visible tab
+                setTimeout(() => lazyLoadImages(), 100);
             }
 
-            // Scroll to top of content area
             const contentArea = document.querySelector('.content-area');
             if (contentArea) {
                 contentArea.scrollTop = 0;
@@ -42,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ===== HORIZONTAL SCROLL (Desktop & Touch) =====
+    // ===== HORIZONTAL SCROLL =====
     const clientsScroll = document.querySelector('.clients-scroll');
     if (clientsScroll) {
         setupHorizontalScroll(clientsScroll);
@@ -96,11 +170,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!data || !projectModal) return;
 
-            // Populate modal content
             document.getElementById('projectTitle').textContent = data.title;
             document.getElementById('projectDescription').textContent = data.description;
 
-            // Add technology badges
             const techContainer = document.getElementById('projectTech');
             if (techContainer) {
                 techContainer.innerHTML = data.technologies
@@ -108,7 +180,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     .join('');
             }
 
-            // Add project links
             const linksContainer = document.getElementById('projectLinks');
             if (linksContainer) {
                 linksContainer.innerHTML = `
@@ -121,29 +192,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
 
-            // Add gallery images
             const gallery = document.getElementById('projectGallery');
             if (gallery) {
+                // Create gallery with optimized loading
                 gallery.innerHTML = data.images.map((src, i) => `
                     <div class="project-gallery-item" data-index="${i}">
-                        <img src="${src}" alt="Project Image ${i + 1}" 
-                             onerror="this.src='https://via.placeholder.com/800x600/10B981/0a0a0a?text=Project+Image+${i + 1}'">
+                        <div class="image-skeleton"></div>
+                        <img data-src="${src}" src="" alt="Project Image ${i + 1}">
                     </div>
                 `).join('');
 
-                // Add click handlers for lightbox
+                // Fast progressive loading
                 gallery.querySelectorAll('.project-gallery-item').forEach((el, idx) => {
-                    el.addEventListener('click', () => openLightbox(data.images, idx));
+                    const img = el.querySelector('img');
+                    const skeleton = el.querySelector('.image-skeleton');
+                    const src = img.dataset.src;
+                    
+                    // Load image
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        img.src = src;
+                        img.classList.add('loaded');
+                        skeleton.style.display = 'none';
+                    };
+                    tempImg.onerror = () => {
+                        handleImageError(img, `Project Image ${idx + 1}`, idx + 1);
+                        skeleton.style.display = 'none';
+                    };
+                    
+                    // Stagger loading for better perceived performance
+                    setTimeout(() => {
+                        tempImg.src = src;
+                    }, idx * 50);
+                    
+                    el.addEventListener('click', () => {
+                        if (!img.src.startsWith('data:') && img.classList.contains('loaded')) {
+                            openLightbox(data.images, idx);
+                        }
+                    });
                 });
             }
 
-            // Show modal
             projectModal.classList.add('active');
             document.body.style.overflow = 'hidden';
         });
     });
 
-    // Close project modal
     if (projectModalClose) {
         projectModalClose.addEventListener('click', () => {
             projectModal.classList.remove('active');
@@ -238,17 +332,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const type = card.getAttribute('data-workshop');
             const data = workshopData[type];
 
-            // Allow PDF download without modal for document type
-            if (type === 'document') {
-                return;
-            }
+            if (type === 'document') return;
 
             e.preventDefault();
             e.stopPropagation();
 
             if (!data || !workshopModal) return;
 
-            // Populate modal content
             document.getElementById('modalTitle').textContent = data.title;
             document.getElementById('modalDate').textContent = data.date;
             document.getElementById('modalDescription').textContent = data.description;
@@ -256,7 +346,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const gallery = document.getElementById('workshopGallery');
             if (gallery) {
                 if (data.pdfs && data.pdfs.length > 0) {
-                    // Render PDF documents
                     gallery.innerHTML = data.pdfs.map((pdf, i) => `
                         <div class="pdf-document-card" data-index="${i}">
                             <div class="pdf-icon-container">
@@ -282,7 +371,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     `).join('');
                 } else {
-                    // Render images/videos
                     const mediaList = (data.images || []).map(src => ({
                         type: src.toLowerCase().endsWith('.mp4') ? 'video' : 'image',
                         src
@@ -300,8 +388,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                             return `
                                 <div class="gallery-item" data-index="${i}">
-                                    <img src="${item.src}" alt="Media ${i + 1}" 
-                                         onerror="this.src='https://via.placeholder.com/800x600/10B981/0a0a0a?text=Media+${i + 1}'">
+                                    <div class="image-skeleton"></div>
+                                    <img data-src="${item.src}" src="" alt="Media ${i + 1}">
                                     <div class="gallery-item-overlay">
                                         <i class="fas fa-search-plus"></i>
                                     </div>
@@ -310,32 +398,51 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }).join('');
 
-                    // Add click handlers for image items (not videos)
                     const imageItems = mediaList
                         .map((m, idx) => ({ ...m, originalIndex: idx }))
                         .filter(m => m.type === 'image');
                     
+                    // Fast progressive loading with stagger
                     gallery.querySelectorAll('.gallery-item:not(.video-item)').forEach((item, idx) => {
+                        const img = item.querySelector('img');
+                        const skeleton = item.querySelector('.image-skeleton');
+                        const src = img.dataset.src;
+                        
+                        const tempImg = new Image();
+                        tempImg.onload = () => {
+                            img.src = src;
+                            img.classList.add('loaded');
+                            skeleton.style.display = 'none';
+                        };
+                        tempImg.onerror = () => {
+                            handleImageError(img, `Media ${idx + 1}`, idx + 1);
+                            skeleton.style.display = 'none';
+                        };
+                        
+                        // Stagger loading
+                        setTimeout(() => {
+                            tempImg.src = src;
+                        }, idx * 30);
+                        
                         item.addEventListener('click', () => {
-                            const imageSources = imageItems.map(m => m.src);
-                            openLightbox(imageSources, idx);
+                            if (!img.src.startsWith('data:') && img.classList.contains('loaded')) {
+                                const imageSources = imageItems.map(m => m.src);
+                                openLightbox(imageSources, idx);
+                            }
                         });
                     });
                 }
             }
 
-            // Show modal
             workshopModal.classList.add('active');
             document.body.style.overflow = 'hidden';
         });
     });
 
-    // View PDF function
     window.viewPDF = function(url) {
         window.open(url, '_blank');
     };
 
-    // Close workshop modal
     if (modalCloseBtn) {
         modalCloseBtn.addEventListener('click', () => {
             pauseWorkshopVideos();
@@ -371,7 +478,21 @@ document.addEventListener('DOMContentLoaded', function() {
         showLightboxImage();
         if (imageLightbox) {
             imageLightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Preload adjacent images
+            preloadAdjacentImages();
         }
+    }
+
+    function preloadAdjacentImages() {
+        const prevIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+        const nextIndex = (currentImageIndex + 1) % currentImages.length;
+        
+        [prevIndex, nextIndex].forEach(idx => {
+            const img = new Image();
+            img.src = currentImages[idx];
+        });
     }
 
     function showLightboxImage() {
@@ -380,15 +501,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const content = document.querySelector('.lightbox-content');
         if (content) {
             content.innerHTML = `
-                <img src="${currentImages[currentImageIndex]}" 
+                <div class="image-skeleton" style="width:100%;height:80vh;"></div>
+                <img data-src="${currentImages[currentImageIndex]}" 
+                     src="" 
                      alt="Gallery Image" 
-                     onerror="this.src='https://via.placeholder.com/1200x800/10B981/0a0a0a?text=Image+Not+Found'">
+                     style="display:none;">
                 <div class="lightbox-counter">${currentImageIndex + 1}/${currentImages.length}</div>
             `;
+            
+            const img = content.querySelector('img');
+            const skeleton = content.querySelector('.image-skeleton');
+            const src = img.dataset.src;
+            
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                img.src = src;
+                img.style.display = 'block';
+                img.classList.add('loaded');
+                skeleton.style.display = 'none';
+                
+                // Preload next images
+                preloadAdjacentImages();
+            };
+            tempImg.onerror = () => {
+                handleImageError(img, 'Image Not Found', currentImageIndex + 1);
+                img.style.display = 'block';
+                skeleton.style.display = 'none';
+            };
+            tempImg.src = src;
         }
     }
 
-    // Lightbox controls
     const lightboxClose = document.getElementById('lightboxClose');
     const lightboxPrev = document.getElementById('lightboxPrev');
     const lightboxNext = document.getElementById('lightboxNext');
@@ -397,12 +540,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lightboxClose) {
         lightboxClose.addEventListener('click', () => {
             imageLightbox.classList.remove('active');
+            document.body.style.overflow = '';
         });
     }
 
     if (lightboxOverlay) {
         lightboxOverlay.addEventListener('click', () => {
             imageLightbox.classList.remove('active');
+            document.body.style.overflow = '';
         });
     }
 
@@ -423,30 +568,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== KEYBOARD CONTROLS =====
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            // Close lightbox
             if (imageLightbox && imageLightbox.classList.contains('active')) {
                 imageLightbox.classList.remove('active');
+                document.body.style.overflow = '';
             }
             
-            // Close workshop modal
             if (workshopModal && workshopModal.classList.contains('active')) {
                 pauseWorkshopVideos();
                 workshopModal.classList.remove('active');
                 document.body.style.overflow = '';
             }
             
-            // Close project modal
             if (projectModal && projectModal.classList.contains('active')) {
                 projectModal.classList.remove('active');
                 document.body.style.overflow = '';
             }
             
-            // Close any active popup
             document.querySelectorAll('.popup.active').forEach(popup => {
                 closePopup(popup.id);
             });
             
-            // Close custom lightbox
             const customLightbox = document.querySelector('.custom-lightbox');
             if (customLightbox && document.body.contains(customLightbox)) {
                 document.body.removeChild(customLightbox);
@@ -454,7 +595,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Lightbox navigation with arrow keys
         if (imageLightbox && imageLightbox.classList.contains('active')) {
             if (e.key === 'ArrowLeft') {
                 currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
@@ -473,11 +613,13 @@ document.addEventListener('DOMContentLoaded', function() {
             popup.classList.add('active');
             document.body.style.overflow = 'hidden';
             
-            // Add event listeners for this specific popup
             const closeBtn = popup.querySelector('.close');
             if (closeBtn) {
                 closeBtn.onclick = () => closePopup(id);
             }
+            
+            // Lazy load images in popup
+            setTimeout(() => lazyLoadImages(), 100);
         }
     };
 
@@ -489,13 +631,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Simple image viewer that uses actual image sources
     window.openImageViewer = function(imageSrc) {
-        console.log('Opening image viewer with:', imageSrc);
-        
-        // Don't open if it's a placeholder URL
-        if (imageSrc.includes('via.placeholder.com') || imageSrc.includes('unsplash.com')) {
-            console.log('Skipping placeholder image');
+        if (imageSrc.startsWith('data:image')) {
             return;
         }
         
@@ -516,8 +653,16 @@ document.addEventListener('DOMContentLoaded', function() {
             box-sizing: border-box;
         `;
         
+        // Loading skeleton
+        const skeleton = document.createElement('div');
+        skeleton.className = 'image-skeleton';
+        skeleton.style.cssText = `
+            width: 80%;
+            height: 80%;
+            border-radius: 10px;
+        `;
+        
         const img = document.createElement('img');
-        img.src = imageSrc;
         img.alt = 'Full size image';
         img.style.cssText = `
             max-width: 100%;
@@ -526,9 +671,23 @@ document.addEventListener('DOMContentLoaded', function() {
             border-radius: 10px;
             border: 3px solid #10B981;
             box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+            display: none;
         `;
         
-        // Add close button
+        // Load image
+        const tempImg = new Image();
+        tempImg.onload = () => {
+            img.src = imageSrc;
+            img.style.display = 'block';
+            skeleton.style.display = 'none';
+        };
+        tempImg.onerror = () => {
+            handleImageError(img, 'Image Not Available', 0);
+            img.style.display = 'block';
+            skeleton.style.display = 'none';
+        };
+        tempImg.src = imageSrc;
+        
         const closeBtn = document.createElement('button');
         closeBtn.innerHTML = '×';
         closeBtn.style.cssText = `
@@ -572,19 +731,18 @@ document.addEventListener('DOMContentLoaded', function() {
             closeLightbox();
         });
         
+        lightbox.appendChild(skeleton);
         lightbox.appendChild(img);
         lightbox.appendChild(closeBtn);
         document.body.appendChild(lightbox);
         document.body.style.overflow = 'hidden';
         
-        // Close when clicking background
         lightbox.addEventListener('click', (e) => {
             if (e.target === lightbox) {
                 closeLightbox();
             }
         });
         
-        // Touch support for mobile
         let touchStartY = 0;
         lightbox.addEventListener('touchstart', (e) => {
             touchStartY = e.touches[0].clientY;
@@ -594,14 +752,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const touchEndY = e.changedTouches[0].clientY;
             const diff = touchStartY - touchEndY;
             
-            // Swipe down to close
             if (diff < -50) {
                 closeLightbox();
             }
         });
     };
 
-    // Initialize popup functionality
     const schoolCards = document.querySelectorAll('.school-gallery-card');
     schoolCards.forEach(card => {
         card.addEventListener('click', (e) => {
@@ -612,7 +768,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Add keyboard support
         card.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -624,43 +779,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Add click handlers for gallery cards inside popups
     document.addEventListener('click', (e) => {
-        // Handle popup gallery cards
         if (e.target.closest('.popup .gallery-card')) {
             e.preventDefault();
             e.stopPropagation();
             const card = e.target.closest('.gallery-card');
             const img = card.querySelector('img');
-            if (img && img.src) {
+            if (img && img.src && !img.src.startsWith('data:') && img.classList.contains('loaded')) {
                 openImageViewer(img.src);
             }
         }
         
-        // Handle workshop modal images (excluding videos)
         if (e.target.closest('.workshop-modal .gallery-item:not(.video-item)')) {
             e.preventDefault();
             e.stopPropagation();
             const galleryItem = e.target.closest('.gallery-item');
             const img = galleryItem.querySelector('img');
-            if (img && img.src) {
+            if (img && img.src && !img.src.startsWith('data:') && img.classList.contains('loaded')) {
                 openImageViewer(img.src);
             }
         }
         
-        // Handle project modal gallery items
         if (e.target.closest('.project-modal .project-gallery-item')) {
             e.preventDefault();
             e.stopPropagation();
             const galleryItem = e.target.closest('.project-gallery-item');
             const img = galleryItem.querySelector('img');
-            if (img && img.src) {
+            if (img && img.src && !img.src.startsWith('data:') && img.classList.contains('loaded')) {
                 openImageViewer(img.src);
             }
         }
     });
     
-    // Close popup when clicking outside the content
     document.addEventListener('click', (event) => {
         const popups = document.querySelectorAll('.popup.active');
         popups.forEach(popup => {
@@ -669,6 +819,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Initialize lazy loading on page load
+    setTimeout(() => lazyLoadImages(), 100);
 
 });
 
@@ -680,7 +833,6 @@ function setupHorizontalScroll(container) {
     let startY;
     let isScrolling = false;
 
-    // Mouse events for desktop
     container.addEventListener('mousedown', (e) => {
         isDown = true;
         container.style.cursor = 'grabbing';
@@ -707,14 +859,12 @@ function setupHorizontalScroll(container) {
         container.scrollLeft = scrollLeft - walk;
     });
 
-    // Mouse wheel for desktop
     container.addEventListener('wheel', (e) => {
         e.preventDefault();
         e.stopPropagation();
         container.scrollLeft += e.deltaY;
     }, { passive: false });
 
-    // Touch events for mobile/tablet
     container.addEventListener('touchstart', (e) => {
         isScrolling = true;
         startX = e.touches[0].pageX - container.offsetLeft;
@@ -730,7 +880,6 @@ function setupHorizontalScroll(container) {
         const walkX = (x - startX) * 2;
         const walkY = Math.abs(y - startY);
         
-        // Only prevent default if horizontal scroll is dominant
         if (Math.abs(walkX) > walkY) {
             e.preventDefault();
             container.scrollLeft = scrollLeft - walkX;
@@ -742,8 +891,6 @@ function setupHorizontalScroll(container) {
     }, { passive: true });
 }
 
-// Console message
 console.log('%c🎨 Portfolio Website ', 'background: #10B981; color: #0a0a0a; font-size: 20px; padding: 10px; border-radius: 5px;');
-console.log('%cDesigned with passion and built with modern web technologies', 'color: #10B981; font-size: 14px;');
-
-
+console.log('%c⚡ Fast image loading enabled with progressive rendering', 'color: #10B981; font-size: 14px;');
+console.log('%c✅ Lazy loading + skeleton screens active', 'color: #10B981; font-size: 12px;');
